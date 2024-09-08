@@ -7,7 +7,7 @@ public class CartService : ICartService
 {
     public Task<bool> CreateCart(Cart cart, out string errorMessage) 
     {
-        if (!(cart.Number == 0))
+        if (cart.Number > 0)
             if (cart.Goods.Any()) 
                 if (cart.Payments.Any()) 
                 {
