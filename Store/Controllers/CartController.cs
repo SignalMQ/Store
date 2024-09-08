@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Store.Models;
-using Store.Service.Interface;
+using Store.Services.Interfaces;
 
-namespace Store.Controller
+namespace Store.Controllers
 {
     [ApiController]
     public class CartController(ICartService cartService) : ControllerBase

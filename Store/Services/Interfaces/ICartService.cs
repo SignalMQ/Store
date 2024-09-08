@@ -1,6 +1,6 @@
 using Store.Models;
 
-namespace Store.Service.Interface;
+namespace Store.Services.Interfaces;
 
 public interface ICartService
 {

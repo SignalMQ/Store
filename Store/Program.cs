@@ -1,5 +1,5 @@
-using Store.Service;
-using Store.Service.Interface;
+using Store.Services;
+using Store.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 

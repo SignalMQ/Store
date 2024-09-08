@@ -1,7 +1,7 @@
 using Store.Models;
-using Store.Service.Interface;
+using Store.Services.Interfaces;
 
-namespace Store.Service;
+namespace Store.Services;
 
 public class CartService : ICartService
 {
