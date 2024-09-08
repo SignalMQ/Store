@@ -1,3 +1,4 @@
+using Store.Enums;
 using Store.Models;
 using Store.Services.Interfaces;
 
@@ -67,7 +68,37 @@ public class CartService : ICartService
 
     private bool CheckPaymentInfo (Cart cart, decimal goodsTotal, out string paymentInfoErrorMessage)
     {
-        paymentInfoErrorMessage = string.Empty;
-        return true;
+        var paymentTotals = 0.0m;
+
+        if (cart.Payments.Any())
+        {
+            foreach (var payment in cart.Payments)
+            {
+                if (!Enum.TryParse<CardTypes>(payment.CardType, out _))
+                    throw new Exception("CardType is not given as enum!");
+
+                if (!Enum.TryParse<PaymentTypes>(payment.PaymentType, out _))
+                    throw new Exception("PaymentType is not given as enum!");
+
+                paymentTotals += payment.Amount + payment.Surcharge;
+            }
+
+            if (paymentTotals < goodsTotal)
+            {
+                paymentInfoErrorMessage = "The cart is not paid in full!";
+                return false;
+            }
+            else
+            {
+                // success
+                paymentInfoErrorMessage = string.Empty;
+                return true;
+            }
+        }
+        else
+        {
+            paymentInfoErrorMessage = "Payments sequence does not contains any elements!";
+            return false;
+        }
     }
 }
