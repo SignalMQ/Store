@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
 namespace Store.Models;
@@ -9,6 +10,8 @@ public class Cart
     public int Number { get; set; }
     public DateTime Created { get; set; } = DateTime.Now;
     public DateTime Finished { get; set; }
+    [AllowNull]
     public List<Good> Goods { get; set; }
+    [AllowNull]
     public List<Payment> Payments { get; set; }
 }
