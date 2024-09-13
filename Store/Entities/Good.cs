@@ -5,6 +5,8 @@ namespace Store.Models;
 public class Good
 {
     [JsonIgnore]
+    public int Id { get; set;}
+    [JsonIgnore]
     public int CartId { get; set; }
     public string? Name { get; set; }
     public string? Code { get; set; }

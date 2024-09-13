@@ -1,16 +1,21 @@
 using Store.Services;
 using Store.Services.Interfaces;
+using Store.Contexts;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddSingleton<ICartService, CartService>();
+// Add the Database service.
+builder.Services.AddDbContext<CartContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Add services with a scoped lifetime.
+builder.Services.AddScoped<ICartService, CartService>();
 
 // Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
-
 
 var app = builder.Build();
 
@@ -20,9 +25,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-// Mappings
-app.MapPost("/createCart", app.Services.GetRequiredService<ICartService>().CreateCart);
 
 app.UseHttpsRedirection();
 app.MapControllers();

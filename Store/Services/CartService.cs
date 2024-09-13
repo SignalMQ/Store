@@ -1,67 +1,61 @@
+using Store.Contexts;
 using Store.Enums;
 using Store.Models;
 using Store.Services.Interfaces;
 
 namespace Store.Services;
 
-public class CartService : ICartService
+public class CartService(CartContext cartContext) : ICartService
 {
-    public Task<IResult> CreateCart(Cart cart) 
+    public async Task<IResult> CreateCart(Cart cart)
     {
-        if (cart.Number > 0)
-            if (CheckGoodInfo(cart, out string goodInfoErrorMessage, out decimal goodsTotal))
-                if (CheckPaymentInfo(cart, goodsTotal, out string paymentInfoErrorMessage)) 
-                    return Task.FromResult(Results.Ok("Accepted"));
-                else return Task.FromResult(Results.BadRequest(paymentInfoErrorMessage));
-            else return Task.FromResult(Results.BadRequest(goodInfoErrorMessage));
-        else return Task.FromResult(Results.BadRequest("Number must be greater than 0!"));
+        if (cart.Number > 0) return await CheckGoodInfo(cart);
+        else return await Task.FromResult(Results.BadRequest("Number must be greater than 0!"));
     }
 
-    private bool CheckGoodInfo(Cart cart, out string goodInfoErrorMessage, out decimal goodsTotal) 
+    private async Task<IResult> CheckGoodInfo(Cart cart)
     {
-        // I don't know how to do without it 😁
-        var _goodsTotal = 0.0m;
+        var goodsTotal = 0.0m;
 
         foreach (var good in cart.Goods)
         {
             // Soliq requirements 🤬
-            if (good.Code!.Count() != 13) throw new Exception($"{good.Code} is not valid as barcode!");
-            if (good.MXIK!.Count() != 17) throw new Exception($"{good.MXIK} is not valid as MXIK!");
-            if (good.UnitCode < 100000)   throw new Exception($"{good.UnitCode} is not valid as UnitCode!");
+            if (good.Code!.Count() != 13)
+                return await Task.FromResult(Results.BadRequest($"{good.Code} is not valid as barcode!"));
+            else if (good.MXIK!.Count() != 17)
+                return await Task.FromResult(Results.BadRequest($"{good.MXIK} is not valid as MXIK!"));
+            else if (good.UnitCode < 100000)
+                return await Task.FromResult(Results.BadRequest($"{good.UnitCode} is not valid as UnitCode!"));
+
             // Price is not less than Discount, otherwise price like this -10...
             // Price multiply to Count is not less than 0, otherwise we receive 0 in any cases
-            _goodsTotal += good.Price >= good.Discount && good.Price * good.Count > 0
-                        ? (good.Price -  good.Discount) * good.Count : 0;
+            goodsTotal += good.Price >= good.Discount && good.Price * good.Count > 0
+                        ? (good.Price - good.Discount) * good.Count : 0;
         }
 
-        goodInfoErrorMessage = string.Empty;
-        goodsTotal = _goodsTotal; 
-        return true;
+        return await CheckPaymentInfo(cart, goodsTotal);
     }
 
-    private bool CheckPaymentInfo (Cart cart, decimal goodsTotal, out string paymentInfoErrorMessage)
+    private async Task<IResult> CheckPaymentInfo (Cart cart, decimal goodsTotal)
     {
         var paymentTotals = 0.0m;
 
         foreach (var payment in cart.Payments)
         {
             if (!Enum.TryParse<PaymentTypes>(payment.PaymentType, out _))
-                throw new Exception("PaymentType is not given as enum!");
+                return await Task.FromResult(Results.BadRequest("PaymentType is not given as enum! \nCorrect types are: CASH CARD"));
             if (!Enum.TryParse<CardTypes>(payment.CardType, out _))
-                throw new Exception("CardType is not given as enum!");
+                return await Task.FromResult(Results.BadRequest("CardType is not given as enum! \nCorrect types are: HUMO, MASTERCARD, MIR, VISA, UNIONPAY, UZCARD"));
 
             paymentTotals += payment.Amount + payment.Surcharge;
         }
+
         if (paymentTotals < goodsTotal)
-        {
-            paymentInfoErrorMessage = "The cart is not paid in full!";
-            return false;
-        }
+            return await Task.FromResult(Results.BadRequest("The cart is not paid in full!"));
         else
         {
-            // success
-            paymentInfoErrorMessage = string.Empty;
-            return true;
+            await cartContext.AddAsync(cart);
+            return await Task.FromResult(Results.Ok(cart.Id));
         }
     }
 }
