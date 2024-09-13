@@ -6,15 +6,15 @@ namespace Store.Services;
 
 public class CartService : ICartService
 {
-    public Task CreateCart(Cart cart) 
+    public Task<IResult> CreateCart(Cart cart) 
     {
         if (cart.Number > 0)
             if (CheckGoodInfo(cart, out string goodInfoErrorMessage, out decimal goodsTotal))
                 if (CheckPaymentInfo(cart, goodsTotal, out string paymentInfoErrorMessage)) 
-                    return Task.CompletedTask;
-                else throw new Exception(paymentInfoErrorMessage);
-            else throw new Exception(goodInfoErrorMessage);
-        else throw new Exception("Number must be greater than 0!");
+                    return Task.FromResult(Results.Ok("Accepted"));
+                else return Task.FromResult(Results.BadRequest(paymentInfoErrorMessage));
+            else return Task.FromResult(Results.BadRequest(goodInfoErrorMessage));
+        else return Task.FromResult(Results.BadRequest("Number must be greater than 0!"));
     }
 
     private bool CheckGoodInfo(Cart cart, out string goodInfoErrorMessage, out decimal goodsTotal) 

@@ -23,24 +23,6 @@ namespace Store.Controllers
             };
         }
 
-        [Route("/api/createCart")]
-        [HttpPost]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> CreateCart(Cart cart)
-        {
-            try 
-            {
-                await _cartService.CreateCart(cart);
-                return Ok(cart);
-            }
-            catch(Exception e)
-            {
-                return BadRequest(e.Message);
-            }
-        }
-
         [Route("/api/updateCart")]
         [HttpPatch]
         [ProducesResponseType(StatusCodes.Status200OK)]

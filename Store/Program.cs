@@ -21,6 +21,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Mappings
+app.MapPost("/createCart", app.Services.GetRequiredService<ICartService>().CreateCart);
+
 app.UseHttpsRedirection();
 app.MapControllers();
 app.Run();
